@@ -11,6 +11,7 @@ class StopwatchScreen extends StatefulWidget {
 class _StopwatchScreenState extends State<StopwatchScreen> {
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
+  final List<Map<String, String>> _laps = [];
 
   void _start() {
     _stopwatch.start();
@@ -27,7 +28,19 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
 
   void _reset() {
     _stopwatch.reset();
-    setState(() {});
+    setState(() {
+      _laps.clear();
+    });
+  }
+
+  void _recordLap() {
+    if (!_stopwatch.isRunning) return;
+    setState(() {
+      _laps.insert(0, {
+        'lap': 'Lap ${_laps.length + 1}',
+        'time': _formatTime(),
+      });
+    });
   }
 
   String _formatTime() {
@@ -150,12 +163,13 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
             ),
           ),
 
-          // Main content
+          // Main content scrollable
           Expanded(
-            child: Center(
+            child: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 32),
+
                   // Clock display
                   Container(
                     width: 290,
@@ -193,13 +207,12 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 56),
+                  const SizedBox(height: 40),
 
-                  // Control buttons
+                  // Control buttons (4 buttons)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Start button
                       _buildCircularButton(
                         icon: Icons.play_arrow_rounded,
                         activeGradient: const LinearGradient(
@@ -209,10 +222,9 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
                         ),
                         onPressed: isRunning ? null : _start,
                         tooltip: 'Start',
-                        size: 64,
+                        size: 60,
                       ),
-                      const SizedBox(width: 20),
-                      // Stop button
+                      const SizedBox(width: 14),
                       _buildCircularButton(
                         icon: Icons.pause_rounded,
                         activeGradient: const LinearGradient(
@@ -222,10 +234,21 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
                         ),
                         onPressed: isRunning ? _stop : null,
                         tooltip: 'Stop',
-                        size: 64,
+                        size: 60,
                       ),
-                      const SizedBox(width: 20),
-                      // Reset button
+                      const SizedBox(width: 14),
+                      _buildCircularButton(
+                        icon: Icons.flag_rounded,
+                        activeGradient: const LinearGradient(
+                          colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        onPressed: isRunning ? _recordLap : null,
+                        tooltip: 'Catat Waktu',
+                        size: 60,
+                      ),
+                      const SizedBox(width: 14),
                       _buildCircularButton(
                         icon: Icons.refresh_rounded,
                         activeGradient: const LinearGradient(
@@ -235,24 +258,204 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
                         ),
                         onPressed: _reset,
                         tooltip: 'Reset',
-                        size: 64,
+                        size: 60,
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 10),
 
                   // Button labels
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildButtonLabel('Start', isRunning ? false : true),
-                      const SizedBox(width: 52),
+                      _buildButtonLabel('Start', !isRunning),
+                      const SizedBox(width: 34),
                       _buildButtonLabel('Stop', isRunning),
-                      const SizedBox(width: 52),
+                      const SizedBox(width: 38),
+                      _buildButtonLabel('Lap', isRunning),
+                      const SizedBox(width: 34),
                       _buildButtonLabel('Reset', true),
                     ],
                   ),
+
+                  const SizedBox(height: 28),
+
+                  // Lap list section
+                  if (_laps.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.flag_rounded,
+                            size: 18,
+                            color: Color(0xFF1565C0),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Catatan Waktu',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0D47A1),
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFBBDEFB),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${_laps.length} lap',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1565C0),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: _laps.length,
+                      itemBuilder: (context, index) {
+                        final lap = _laps[index];
+                        final lapNumber = _laps.length - index;
+
+                        // Find fastest & slowest only when there are multiple laps
+                        final allTimes = _laps.map((e) => e['time']!).toList();
+                        final fastestTime = allTimes.reduce(
+                          (a, b) => a.compareTo(b) < 0 ? a : b,
+                        );
+                        final slowestTime = allTimes.reduce(
+                          (a, b) => a.compareTo(b) > 0 ? a : b,
+                        );
+                        final bool isFastest =
+                            _laps.length > 1 && lap['time'] == fastestTime;
+                        final bool isSlowest =
+                            _laps.length > 1 && lap['time'] == slowestTime;
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isFastest
+                                  ? const Color(0xFF81C784).withOpacity(0.7)
+                                  : isSlowest
+                                  ? const Color(0xFFE57373).withOpacity(0.7)
+                                  : const Color(0xFFBBDEFB),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF1565C0,
+                                ).withOpacity(0.07),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                // Lap number badge
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: isFastest
+                                        ? const Color(0xFFC8E6C9)
+                                        : isSlowest
+                                        ? const Color(0xFFFFCDD2)
+                                        : const Color(0xFFBBDEFB),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '$lapNumber',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: isFastest
+                                            ? const Color(0xFF388E3C)
+                                            : isSlowest
+                                            ? const Color(0xFFD32F2F)
+                                            : const Color(0xFF1565C0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      lap['lap']!,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF37474F),
+                                      ),
+                                    ),
+                                    if (isFastest)
+                                      const Text(
+                                        '🏆 Tercepat',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF388E3C),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                    else if (isSlowest)
+                                      const Text(
+                                        '🐢 Terlambat',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFFD32F2F),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Text(
+                                  lap['time']!,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0D47A1),
+                                    fontFeatures: [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ],
               ),
             ),
@@ -307,7 +510,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
           ),
           child: Icon(
             icon,
-            size: 30,
+            size: 26,
             color: isActive ? Colors.white : Colors.grey.shade400,
           ),
         ),
