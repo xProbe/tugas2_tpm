@@ -6,6 +6,9 @@ import 'ganjil_genap_prima_screen.dart';
 import 'total_angka_screen.dart';
 import 'stopwatch_screen.dart';
 import 'piramid_screen.dart';
+import 'weton_screen.dart';
+import 'umur_lengkap_screen.dart';
+import 'hijriah_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -95,7 +98,7 @@ class MainMenuScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '6 fitur tersedia untuk Anda',
+                      '9 fitur tersedia untuk Anda',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.75),
                         fontSize: 13,
@@ -162,6 +165,30 @@ class MainMenuScreen extends StatelessWidget {
                   const Color(0xFF1E88E5),
                   const Color(0xFFBBDEFB),
                   const PiramidScreen(),
+                ),
+                _buildMenuCard(
+                  context,
+                  'Hari & Weton',
+                  Icons.today_rounded,
+                  const Color(0xFF01579B),
+                  const Color(0xFFBBDEFB),
+                  const HariWetonScreen(),
+                ),
+                _buildMenuCard(
+                  context,
+                  'Umur Lengkap',
+                  Icons.cake_rounded,
+                  const Color(0xFF01579B),
+                  const Color(0xFFBBDEFB),
+                  const UmurLengkapScreen(),
+                ),
+                _buildMenuCard(
+                  context,
+                  'Konversi Hijriah',
+                  Icons.nights_stay_rounded,
+                  const Color(0xFF01579B),
+                  const Color(0xFFBBDEFB),
+                  const HijriahScreen(),
                 ),
               ],
             ),
