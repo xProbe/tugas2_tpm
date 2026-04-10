@@ -44,8 +44,8 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   }
 
   String _formatTime() {
-    int setJam = 23;
-    int setMenit = 59;
+    int setJam = 0;
+    int setMenit = 0;
     int setDetik = 0;
 
     int offsetMs = (setJam * 3600000) + (setMenit * 60000) + (setDetik * 1000);
