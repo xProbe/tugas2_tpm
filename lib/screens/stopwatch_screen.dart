@@ -13,10 +13,21 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   Timer? _timer;
   final List<Map<String, String>> _laps = [];
 
+  int setJam = 0;
+  int setMenit = 0;
+  int setDetik = 0;
+  late int _offsetMs;
+
+  @override
+  void initState() {
+    super.initState();
+    _offsetMs = (setJam * 3600000) + (setMenit * 60000) + (setDetik * 1000);
+  }
+
   void _start() {
     _stopwatch.start();
     _timer = Timer.periodic(const Duration(milliseconds: 30), (Timer t) {
-      if (_stopwatch.elapsedMilliseconds >= 86400000) { // 24 jam = 86400000 ms
+      if (_stopwatch.elapsedMilliseconds + _offsetMs >= 86400000) { // 24 jam = 86400000 ms
         _reset();
       } else {
         setState(() {});
@@ -32,6 +43,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
 
   void _reset() {
     _stopwatch.reset();
+    _offsetMs = 0;
     setState(() {
       _laps.clear();
     });
@@ -48,12 +60,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   }
 
   String _formatTime() {
-    int setJam = 0;
-    int setMenit = 0;
-    int setDetik = 0;
-
-    int offsetMs = (setJam * 3600000) + (setMenit * 60000) + (setDetik * 1000);
-    final ms = _stopwatch.elapsedMilliseconds + offsetMs;
+    final ms = _stopwatch.elapsedMilliseconds + _offsetMs;
 
     int hundreds = (ms / 10).truncate() % 100;
     int seconds = (ms / 1000).truncate() % 60;
